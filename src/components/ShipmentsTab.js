@@ -6,7 +6,7 @@ export default function ShipmentsTab({ shipments, loading, fetchShipments }) {
       <h2 className="text-xl font-semibold mb-4">Your Shipments</h2>
       
       <button
-        className="px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white font-medium rounded-md hover:from-green-700 hover:to-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150 ease-in-out disabled:opacity-40 disabled:cursor-not-allowed"
+        className="px-5 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white font-medium rounded-md hover:from-green-700 hover:to-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150 ease-in-out disabled:opacity-40 disabled:cursor-not-allowed"
         onClick={fetchShipments}
         disabled={loading}
       >

@@ -1,6 +1,12 @@
 import React from 'react';
 
 export default function UploadTab({ file, setFile, status, handleUpload }) {
+  // Determine if we're currently in uploading state
+  const isUploading = status.includes('Uploading');
+  
+  // Only show success or error messages, not the uploading status
+  const showStatusMessage = status.includes('✅') || status.includes('❌');
+  
   return (
     <div className="max-w-md mx-auto bg-white shadow-md rounded-lg p-6">
       <h2 className="text-xl font-semibold mb-4 text-center">Upload Shipment Data</h2>
@@ -21,25 +27,33 @@ export default function UploadTab({ file, setFile, status, handleUpload }) {
             accept=".xlsx"
             className="hidden"
             onChange={e => setFile(e.target.files[0])}
+            disabled={isUploading}
           />
         </label>
         
         <button
-          className="w-64 mt-6 px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-medium rounded-md hover:from-blue-700 hover:to-indigo-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out disabled:opacity-40 disabled:cursor-not-allowed"
+          className="w-64 mt-6 px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-medium rounded-md hover:from-blue-700 hover:to-indigo-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out disabled:opacity-40 disabled:cursor-not-allowed flex justify-center items-center"
           onClick={handleUpload}
-          disabled={!file || status.includes('Uploading')}
+          disabled={!file || isUploading}
         >
-          {status.includes('Uploading') ? 'Uploading...' : 'Upload Data'}
+          {isUploading ? (
+            <>
+              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Uploading...
+            </>
+          ) : "Upload Data"}
         </button>
       </div>
       
-      {status && (
+      {/* Only show success or error messages, not loading state */}
+      {showStatusMessage && (
         <div className={`mt-6 p-4 rounded-md ${
           status.includes('❌') 
             ? 'bg-red-50 text-red-700' 
-            : status.includes('✅') 
-              ? 'bg-green-50 text-green-700'
-              : 'bg-blue-50 text-blue-700'
+            : 'bg-green-50 text-green-700'
         }`}>
           {status}
         </div>

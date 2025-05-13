@@ -1,5 +1,4 @@
-// src/App.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Auth, Storage } from 'aws-amplify';
 import { DynamoDBClient, ScanCommand } from '@aws-sdk/client-dynamodb';
 import { useAuth } from './auth/AuthProvider';
@@ -7,14 +6,38 @@ import SignIn from './auth/SignIn';
 import SignUp from './auth/SignUp';
 import Confirm from './auth/Confirm';
 
+// Import components
+import Navbar from './components/Navbar';
+import UploadTab from './components/UploadTab';
+import ShipmentsTab from './components/ShipmentsTab';
+import Footer from './components/Footer';
+import LoadingScreen from './components/LoadingScreen';
+
 export default function App() {
   const { user, step, setStep } = useAuth();
   const [file, setFile] = useState(null);
   const [status, setStatus] = useState('');
   const [shipments, setShipments] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('upload'); // 'upload' or 'shipments'
 
-  if (step === 'loading') return null;
+  // Reset states when user changes or logs in
+  useEffect(() => {
+    if (step === 'authenticated') {
+      resetStates();
+    }
+  }, [step, user?.username]);
+
+  // Function to reset all states
+  const resetStates = () => {
+    setFile(null);
+    setStatus('');
+    setShipments([]);
+    setLoading(false);
+    setActiveTab('upload');
+  };
+
+  if (step === 'loading') return <LoadingScreen />;
   if (step === 'signin')  return <SignIn />;
   if (step === 'signup')  return <SignUp />;
   if (step === 'confirm') return <Confirm />;
@@ -37,6 +60,9 @@ export default function App() {
       });
       setStatus('✅ Uploaded!');
       setFile(null);
+      
+      // Show success message with animation
+      setTimeout(() => setStatus(''), 3000);
     } catch (err) {
       console.error(err);
       setStatus('❌ ' + err.message);
@@ -76,74 +102,70 @@ export default function App() {
     setLoading(false);
   };
 
+  const handleSignOut = async () => {
+    resetStates();
+    await Auth.signOut();
+    setStep('signin');
+  };
+
   return (
-    <div className="p-6 max-w-xxl mx-auto">
-      <h2 className="text-xl font-semibold mb-2">Welcome, {user.username}</h2>
-      <p className="mb-4 text-gray-600">{user.attributes.email}</p>
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      {/* Navigation Bar */}
+      <Navbar user={user} handleSignOut={handleSignOut} />
 
-      <input
-        type="file"
-        accept=".xlsx"
-        onChange={e => setFile(e.target.files[0])}
-        className="mb-4"
-      />
-
-      <button
-        className="bg-blue-600 text-white py-2 px-4 rounded disabled:opacity-40"
-        onClick={handleUpload}
-        disabled={!file}
-      >
-        Upload
-      </button>
-
-      {status && <p className="mt-2">{status}</p>}
-
-      <button
-        className="mt-6 bg-green-600 text-white py-2 px-4 rounded disabled:opacity-40"
-        onClick={fetchShipments}
-        disabled={loading}
-      >
-        {loading ? 'Loading…' : 'Show My Shipments'}
-      </button>
-
-      {shipments.length > 0 && (
-        <div className="overflow-x-auto mt-4">
-          <table className="min-w-full border">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="p-2 border">ShipmentID</th>
-                <th className="p-2 border">OrderID</th>
-                <th className="p-2 border">Origin</th>
-                <th className="p-2 border">Destination</th>
-                <th className="p-2 border">Weight (kg)</th>
-                <th className="p-2 border">DispatchDate</th>
-              </tr>
-            </thead>
-            <tbody>
-              {shipments.map((s, i) => (
-                <tr key={i}>
-                  <td className="p-2 border">{s.ShipmentID}</td>
-                  <td className="p-2 border">{s.OrderID}</td>
-                  <td className="p-2 border">{s.Origin}</td>
-                  <td className="p-2 border">{s.Destination}</td>
-                  <td className="p-2 border">{s.Weight_kg}</td>
-                  <td className="p-2 border">{s.DispatchDate}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <div className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Tabs */}
+        <div className="border-b border-gray-200 mb-6">
+          <nav className="-mb-px flex">
+            <button
+              className={`py-4 px-6 font-medium text-sm ${
+                activeTab === 'upload'
+                  ? 'border-b-2 border-blue-500 text-blue-600'
+                  : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+              onClick={() => setActiveTab('upload')}
+            >
+              Upload Data
+            </button>
+            <button
+              className={`py-4 px-6 font-medium text-sm ${
+                activeTab === 'shipments'
+                  ? 'border-b-2 border-blue-500 text-blue-600'
+                  : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+              onClick={() => {
+                setActiveTab('shipments');
+                if (shipments.length === 0) fetchShipments();
+              }}
+            >
+              View Shipments
+            </button>
+          </nav>
         </div>
-      )}
+        
+        {/* Content area - add flex with vertical centering when upload tab is active */}
+        <div className={`${activeTab === 'upload' ? 'flex-1 flex items-center justify-center' : ''}`}>
+          {activeTab === 'upload' && (
+            <UploadTab 
+              file={file} 
+              setFile={setFile}
+              status={status}
+              handleUpload={handleUpload}
+            />
+          )}
 
-      <button
-        className="mt-6 text-blue-600 underline"
-        onClick={async () => {
-          await Auth.signOut();
-          setStep('signin');
-        }}
-      >
-        Sign out
-      </button>
+          {activeTab === 'shipments' && (
+            <ShipmentsTab 
+              shipments={shipments}
+              loading={loading}
+              fetchShipments={fetchShipments}
+            />
+          )}
+        </div>
+      </div>
+      
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

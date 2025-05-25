@@ -351,7 +351,7 @@ export default function AnalyticsTab({ shipments, loading }) {
         
         {/* Export buttons */}
         <div className="flex space-x-3">
-          <button 
+          {/* <button 
             onClick={exportToPDF}
             className="px-3 py-2 bg-red-600 text-white text-sm font-medium rounded hover:bg-red-700 flex items-center"
           >
@@ -360,7 +360,7 @@ export default function AnalyticsTab({ shipments, loading }) {
               <path d="M5 3a2 2 0 00-2 2v6a2 2 0 002 2V5h8a2 2 0 00-2-2H5z"></path>
             </svg>
             Export PDF
-          </button>
+          </button> */}
           <button 
             onClick={exportToExcel}
             className="px-3 py-2 bg-green-600 text-white text-sm font-medium rounded hover:bg-green-700 flex items-center"

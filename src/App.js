@@ -10,6 +10,7 @@ import Confirm from './auth/Confirm';
 import Navbar from './components/Navbar';
 import UploadTab from './components/UploadTab';
 import ShipmentsTab from './components/ShipmentsTab';
+import AnalyticsTab from './components/AnalyticsTab'; // Import the new component
 import Footer from './components/Footer';
 import LoadingScreen from './components/LoadingScreen';
 
@@ -19,7 +20,7 @@ export default function App() {
   const [status, setStatus] = useState('');
   const [shipments, setShipments] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('upload'); // 'upload' or 'shipments'
+  const [activeTab, setActiveTab] = useState('upload'); // 'upload' or 'shipments' or 'analytics'
 
   // Reset states when user changes or logs in
   useEffect(() => {
@@ -88,12 +89,14 @@ export default function App() {
       });
       const resp = await client.send(cmd);
       const items = (resp.Items || []).map(i => ({
-        ShipmentID:   i.ShipmentID.S,
-        OrderID:      i.OrderID.S,
-        Origin:       i.Origin.S,
-        Destination:  i.Destination.S,
-        Weight_kg:    i.Weight_kg.S,
-        DispatchDate: i.DispatchDate.S
+        ShipmentID:           i.ShipmentID.S,
+        OrderID:              i.OrderID.S,
+        Origin:               i.Origin.S,
+        Destination:          i.Destination.S,
+        Weight_kg:            i.Weight_kg.S,
+        DispatchDate:         i.DispatchDate.S,
+        ExpectedDeliveryDate: i.ExpectedDeliveryDate?.S || null,
+        ActualDeliveryDate:   i.ActualDeliveryDate?.S || null
       }));
       setShipments(items);
     } catch (e) {
@@ -140,10 +143,23 @@ export default function App() {
             >
               View Shipments
             </button>
+            <button
+              className={`py-4 px-6 font-medium text-sm ${
+                activeTab === 'analytics'
+                  ? 'border-b-2 border-blue-500 text-blue-600'
+                  : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+              onClick={() => {
+                setActiveTab('analytics');
+                if (shipments.length === 0) fetchShipments();
+              }}
+            >
+              Analytics
+            </button>
           </nav>
         </div>
         
-        {/* Content area - add flex with vertical centering when upload tab is active */}
+        {/* Content area */}
         <div className={`${activeTab === 'upload' ? 'flex-1 flex items-center justify-center' : ''}`}>
           {activeTab === 'upload' && (
             <UploadTab 
@@ -159,6 +175,13 @@ export default function App() {
               shipments={shipments}
               loading={loading}
               fetchShipments={fetchShipments}
+            />
+          )}
+          
+          {activeTab === 'analytics' && (
+            <AnalyticsTab 
+              shipments={shipments}
+              loading={loading}
             />
           )}
         </div>

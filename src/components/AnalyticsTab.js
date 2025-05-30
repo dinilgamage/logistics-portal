@@ -471,9 +471,9 @@ export default function AnalyticsTab({ shipments, loading }) {
           </div>
         </div>
         
-        {/* Delivery Performance Table - Top 5 Items */}
+        {/* Delivery Performance Table - Recent Deliveries */}
         <div className="overflow-hidden border-b border-gray-200 rounded-lg">
-          <h3 className="text-lg font-medium mb-3">Latest Shipments</h3>
+          <h4 className="px-6 py-2 bg-blue-50 text-sm font-semibold text-blue-800">Recent Deliveries</h4>
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-100">
               <tr>
@@ -486,6 +486,7 @@ export default function AnalyticsTab({ shipments, loading }) {
             <tbody className="bg-white divide-y divide-gray-200">
               {deliveryPerformance
                 .filter(delivery => delivery.status !== "Unknown")
+                .sort((a, b) => new Date(b.actualDelivery) - new Date(a.actualDelivery)) // Sort by most recent
                 .slice(0, 5)
                 .map((delivery, idx) => (
                 <tr key={idx} className="hover:bg-gray-50">

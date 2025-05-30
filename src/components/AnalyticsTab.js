@@ -473,13 +473,13 @@ export default function AnalyticsTab({ shipments, loading }) {
         
         {/* Delivery Performance Table - Top 5 Items */}
         <div className="overflow-hidden border-b border-gray-200 rounded-lg">
+          <h3 className="text-lg font-medium mb-3">Latest Shipments</h3>
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-100">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Shipment ID</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Route</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estimated</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actual</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Delivered</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
               </tr>
             </thead>
@@ -491,7 +491,6 @@ export default function AnalyticsTab({ shipments, loading }) {
                 <tr key={idx} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{delivery.id}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{delivery.origin} → {delivery.destination}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{delivery.estimatedDelivery}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{delivery.actualDelivery}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 

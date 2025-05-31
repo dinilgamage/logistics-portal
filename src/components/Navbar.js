@@ -13,7 +13,7 @@ export default function Navbar({ user, handleSignOut }) {
           </div>
           <div className="flex items-center">
             <div className="flex flex-col items-end mr-4">
-              <span className="text-white font-medium">{user.username}</span>
+              <span className="text-white font-medium uppercase">{user.username}</span>
               <span className="text-blue-100 text-sm">{user.attributes.email}</span>
             </div>
             <button

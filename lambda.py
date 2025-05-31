@@ -75,6 +75,8 @@ def handler(event, context):
                             "Destination":  row_data.get("Destination", ""),
                             "Weight_kg":    str(row_data.get("Weight_kg", "")),
                             "DispatchDate": str(row_data.get("DispatchDate", "")),
+                            "ExpectedDeliveryDate": str(row_data.get("ExpectedDeliveryDate", "")),
+                            "ActualDeliveryDate": str(row_data.get("ActualDeliveryDate", "")),
                             "SourceFile":   key
                         },
                         ConditionExpression="attribute_not_exists(ShipmentID)",

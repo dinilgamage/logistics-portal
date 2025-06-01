@@ -10,7 +10,7 @@ import Confirm from "./auth/Confirm";
 import Navbar from "./components/Navbar";
 import UploadTab from "./components/UploadTab";
 import ShipmentsTab from "./components/ShipmentsTab";
-import AnalyticsTab from "./components/AnalyticsTab"; // Import the new component
+import AnalyticsTab from "./components/AnalyticsTab";
 import Footer from "./components/Footer";
 import LoadingScreen from "./components/LoadingScreen";
 import AdminDashboard from "./components/AdminDashboard";
@@ -21,7 +21,7 @@ export default function App() {
   const [status, setStatus] = useState("");
   const [shipments, setShipments] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState("upload"); // 'upload' or 'shipments' or 'analytics'
+  const [activeTab, setActiveTab] = useState("upload");
   const [isAdmin, setIsAdmin] = useState(false);
 
   // Reset states when user changes or logs in

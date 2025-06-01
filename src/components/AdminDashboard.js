@@ -7,7 +7,7 @@ export default function AdminDashboard({ fetchAdminShipments }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedCompany, setSelectedCompany] = useState('all');
-  const [activeTab, setActiveTab] = useState('analytics'); // 'analytics' or 'shipments'
+  const [activeTab, setActiveTab] = useState('analytics');
   
   useEffect(() => {
     const loadAdminData = async () => {

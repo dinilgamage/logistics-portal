@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 export default function AdminShipmentsTab({ adminShipments, loading, companyIds, shipmentsByCompany }) {
-  const [selectedCompany, setSelectedCompany] = useState('all'); // Default to 'all'
+  const [selectedCompany, setSelectedCompany] = useState('all');
   
   // Helper function to format dates
   const formatDate = (dateString) => {

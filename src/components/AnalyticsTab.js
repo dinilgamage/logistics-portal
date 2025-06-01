@@ -13,9 +13,9 @@ export default function AnalyticsTab({ shipments, loading }) {
   const [destinationStats, setDestinationStats] = useState([]);
   const [weightDistribution, setWeightDistribution] = useState([]);
   const [monthlyShipments, setMonthlyShipments] = useState([]);
-  const [topRoutes, setTopRoutes] = useState([]); // Add this for route analysis
-  const [deliveryPerformance, setDeliveryPerformance] = useState([]); // Add this for delivery performance
-  const [performanceStats, setPerformanceStats] = useState({ // Summary stats for performance
+  const [topRoutes, setTopRoutes] = useState([]);
+  const [deliveryPerformance, setDeliveryPerformance] = useState([]);
+  const [performanceStats, setPerformanceStats] = useState({
     onTime: 0,
     early: 0, 
     late: 0,
@@ -83,7 +83,6 @@ export default function AnalyticsTab({ shipments, loading }) {
     // Monthly shipment trends
     const months = {};
     shipments.forEach(ship => {
-      // Assuming DispatchDate is in format YYYY-MM-DD
       const date = new Date(ship.DispatchDate);
       if (!isNaN(date.getTime())) {
         const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
@@ -98,7 +97,6 @@ export default function AnalyticsTab({ shipments, loading }) {
     
     setMonthlyShipments(monthData);
     
-    // NEW: Route Analysis (Origin + Destination pairs)
     const routeCounts = shipments.reduce((acc, ship) => {
       const route = `${ship.Origin} → ${ship.Destination}`;
       acc[route] = (acc[route] || 0) + 1;
@@ -112,7 +110,6 @@ export default function AnalyticsTab({ shipments, loading }) {
     
     setTopRoutes(routeData);
     
-    // NEW: Delivery Performance Analysis
     const deliveryData = shipments.map(ship => {
       // Parse real dates from the shipment data
       const dispatchDate = new Date(ship.DispatchDate);
@@ -179,18 +176,16 @@ export default function AnalyticsTab({ shipments, loading }) {
     });
   };
   
-  // Export to PDF function
+  // Not used right now, but can be used for future enhancements
   const exportToPDF = () => {
     const doc = new jsPDF();
     
-    // Add title
     doc.setFontSize(20);
     doc.text("Logistics Analytics Report", 15, 15);
     doc.setFontSize(12);
     doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 15, 22);
     doc.text(`Total shipments analyzed: ${shipments.length}`, 15, 29);
     
-    // Shipment summary
     doc.setFontSize(16);
     doc.text("Shipment Summary", 15, 40);
     
@@ -208,7 +203,6 @@ export default function AnalyticsTab({ shipments, loading }) {
       theme: 'grid'
     });
     
-    // Top routes
     doc.setFontSize(16);
     doc.text("Top Routes", 15, doc.lastAutoTable.finalY + 15);
     
@@ -219,7 +213,6 @@ export default function AnalyticsTab({ shipments, loading }) {
       theme: 'grid'
     });
     
-    // Delivery performance
     doc.setFontSize(16);
     doc.text("Delivery Performance", 15, doc.lastAutoTable.finalY + 15);
     
@@ -238,7 +231,6 @@ export default function AnalyticsTab({ shipments, loading }) {
       theme: 'grid'
     });
     
-    // Save the PDF
     doc.save("logistics-analytics.pdf");
   };
   
@@ -415,7 +407,7 @@ export default function AnalyticsTab({ shipments, loading }) {
         </div>
       </div>
       
-      {/* NEW: Delivery Performance Section */}
+      {/* Delivery Performance Section */}
       <div className="bg-gray-50 p-4 rounded-lg mb-8">
         <h3 className="text-lg font-medium mb-3">Delivery Performance</h3>
         
@@ -566,7 +558,7 @@ export default function AnalyticsTab({ shipments, loading }) {
         </div>
       </div>
       
-      {/* NEW: Top Routes */}
+      {/* Top Routes */}
       <div className="bg-gray-50 p-4 rounded-lg mb-8">
         <h3 className="text-lg font-medium mb-3">Top Routes</h3>
         <ResponsiveContainer width="100%" height={300}>

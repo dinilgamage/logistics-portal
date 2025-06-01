@@ -18,6 +18,27 @@ SES_SENDER = os.environ['SES_SENDER'].strip()
 
 _email_re = re.compile(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$")
 
+# Helper function to send SES emails
+def send_ses_notification(email, subject, message):
+    if not _email_re.match(email):
+        logger.warning("Skip SES: invalid e-mail %s", email)
+        return False
+        
+    try:
+        ses.send_email(
+            Source=SES_SENDER,
+            Destination={"ToAddresses": [email]},
+            Message={
+                "Subject": {"Data": subject},
+                "Body": {"Text": {"Data": message}},
+            },
+        )
+        logger.info("SES mail sent → %s", email)
+        return True
+    except Exception:
+        logger.error("SES error:\n%s", traceback.format_exc())
+        return False
+
 # ───────────────────────────── Handler ──────────────────────────────
 def handler(event, context):
     logger.info("Invocation started: %s records", len(event.get("Records", [])))
@@ -31,14 +52,8 @@ def handler(event, context):
             key    = unquote_plus(detail["object"]["key"])
             logger.info("Processing %s/%s", bucket, key)
 
-            # ── 2. Download and open Excel file ────────────────────
-            obj   = s3.get_object(Bucket=bucket, Key=key)
-            wb    = openpyxl.load_workbook(io.BytesIO(obj["Body"].read()))
-            sheet = wb.active
-
-            # ── 3. Derive company (IdentityId) + uploader email ────
+            # Extract uploader email early for error notifications
             parts = key.split("/")
-
             if parts[0] == "private":
                 company_id     = parts[1]
                 uploader_email = parts[2]
@@ -47,13 +62,40 @@ def handler(event, context):
                 company_id     = parts[0]
                 uploader_email = parts[1]
                 filename       = "/".join(parts[2:])
-
+            
             uploader_email = unquote_plus(uploader_email)
             upload_id      = filename.rsplit(".", 1)[0]
-
+            
             logger.info("Uploader email: %s | CompanyID: %s", uploader_email, company_id)
 
-            # ── 4. Write each row to DynamoDB ─────────
+            try:
+                # ── 2. Download and open Excel file ────────────────────
+                obj   = s3.get_object(Bucket=bucket, Key=key)
+                wb    = openpyxl.load_workbook(io.BytesIO(obj["Body"].read()))
+                sheet = wb.active
+            except Exception as excel_error:
+                # Handle Excel parsing errors specifically
+                error_message = str(excel_error)
+                logger.error("Excel parsing error: %s\n%s", error_message, traceback.format_exc())
+                
+                # Notify management via SNS about the failure
+                sns.publish(
+                    TopicArn=SNS_TOPIC,
+                    Subject="Upload Processing Failed",
+                    Message=f"File {key} processing failed for {company_id}. Error: {error_message}",
+                )
+                
+                # Send failure notification to the uploader
+                send_ses_notification(
+                    uploader_email,
+                    "Your file could not be processed",
+                    f"We encountered an issue processing your file {filename}. The file format may be incorrect or the file may be corrupted. Please check your file and try uploading again."
+                )
+                
+                # Skip to the next record
+                continue
+
+            # ── 3. Write each row to DynamoDB ─────────
             headers = [
                 str(cell.value).strip() if cell.value is not None else ""
                 for cell in sheet[1]
@@ -75,6 +117,8 @@ def handler(event, context):
                             "Destination":  row_data.get("Destination", ""),
                             "Weight_kg":    str(row_data.get("Weight_kg", "")),
                             "DispatchDate": str(row_data.get("DispatchDate", "")),
+                            "ExpectedDeliveryDate": str(row_data.get("ExpectedDeliveryDate", "")),
+                            "ActualDeliveryDate": str(row_data.get("ActualDeliveryDate", "")),
                             "SourceFile":   key
                         },
                         ConditionExpression="attribute_not_exists(ShipmentID)",
@@ -87,7 +131,7 @@ def handler(event, context):
 
             logger.info("%s rows written for %s", rows_written, key)
 
-            # ── 5. SNS management notification ─────────────────────
+            # ── 4. SNS management notification ─────────────────────
             sns.publish(
                 TopicArn=SNS_TOPIC,
                 Subject="New Upload Processed",
@@ -95,22 +139,12 @@ def handler(event, context):
             )
             logger.info("SNS notification sent")
 
-            # ── 6. SES receipt email ───
-            if _email_re.match(uploader_email):
-                try:
-                    ses.send_email(
-                        Source=SES_SENDER,
-                        Destination={"ToAddresses": [uploader_email]},
-                        Message={
-                            "Subject": {"Data": "Your file was processed"},
-                            "Body":    {"Text": {"Data": f"We processed {key}. Rows: {rows_written}"}},
-                        },
-                    )
-                    logger.info("SES mail sent → %s", uploader_email)
-                except Exception:
-                    logger.error("SES error:\n%s", traceback.format_exc())
-            else:
-                logger.warning("Skip SES: invalid e-mail %s", uploader_email)
+            # ── 5. SES receipt email ───
+            send_ses_notification(
+                uploader_email,
+                "Your file was processed",
+                f"We processed {filename}. Records imported: {rows_written}"
+            )
 
         except Exception:
             logger.error("Unhandled error:\n%s", traceback.format_exc())

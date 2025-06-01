@@ -6,7 +6,7 @@ export const useAuth = () => useContext(AuthCtx);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [step, setStep] = useState('loading'); // 'signin'|'signup'|'confirm'|'app'
+  const [step, setStep] = useState('loading');
 
   useEffect(() => {
     Auth.currentAuthenticatedUser()

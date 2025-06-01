@@ -33,6 +33,7 @@ export default function AnalyticsTab({ shipments, loading }) {
     if (shipments.length > 0) {
       generateAnalytics();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shipments]);
   
   const generateAnalytics = () => {
